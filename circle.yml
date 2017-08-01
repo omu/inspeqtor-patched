@@ -1,0 +1,25 @@
+machine:
+  timezone:
+    Europe/Istanbul
+  environment:
+    BINARY_FILE: ${CIRCLE_PROJECT_REPONAME%%-*}
+    GOPATH: $HOME/.go_workspace
+    VENDORPATH: $GOPATH/src/github.com/$CIRCLE_PROJECT_USERNAME
+dependencies:
+  pre:
+    - go get github.com/tcnksm/ghr
+  override:
+    - rm -rf $VENDORPATH/$CIRCLE_PROJECT_REPONAME
+    - ln -s $PWD $VENDORPATH/$CIRCLE_PROJECT_REPONAME
+test:
+  override:
+    - make test
+compile:
+  override:
+    - make bin
+deployment:
+  release:
+    tag: /^[0-9]+\.[0-9]+/
+    commands:
+      - zip $BINARY_FILE.zip $BINARY_FILE
+      - ghr -delete -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME $CIRCLE_TAG $BINARY_FILE.zip
